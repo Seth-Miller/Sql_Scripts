@@ -1,0 +1,47 @@
+DECLARE
+
+DEBUG_ON BOOLEAN := FALSE;
+
+PROCEDURE DEBUG (IN_TEXT IN VARCHAR2) IS
+BEGIN
+    IF DEBUG_ON THEN
+        DBMS_OUTPUT.PUT_LINE(''DEBUG: '' || IN_TEXT);
+    END IF;
+END DEBUG;
+
+FUNCTION WAIT 
+RETURN BOOLEAN
+IS
+    LOOP_CNT NUMBER;
+    FLAG UTL_FILE.FILE_TYPE;
+    FLAG_OUT VARCHAR2(50);
+BEGIN
+    FOR LOOP_CNT IN 1 .. NUMLOOP_CNT LOOP
+        DEBUG(''The loop count in the WAIT function is: ''||LOOP_CNT);
+        FLAG := UTL_FILE.FOPEN(L_DIR, F_FILENAME, ''R'');
+        UTL_FILE.GET_LINE(FLAG, FLAG_OUT);
+        UTL_FILE.FCLOSE(FLAG);
+        DEBUG(''The flag file value in the WAIT function is: ''||FLAG_OUT);
+        IF FLAG_OUT = 0 THEN
+            RETURN TRUE;
+        ELSE
+            DBMS_LOCK.SLEEP(SLEEP_CNT);
+        END IF;
+    END LOOP;
+    RETURN FALSE;
+END WAIT;
+
+BEGIN
+
+	FOR DB IN DB_LOOP LOOP
+	    DEBUG(''Timestamp in main DB_LOOP: ''||DBMS_UTILITY.GET_TIME);
+	    DEBUG(''The value in the main DB_LOOP is: ''||DB.ITEM);
+
+	    IF NOT WAIT THEN EXIT; END IF;    
+
+	    SOME_PROCEDURE(VAR1);
+
+	END LOOP;
+
+END;
+/
